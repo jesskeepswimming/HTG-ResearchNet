@@ -1,31 +1,30 @@
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from flask import Flask, render_template, request
+import urllib.request
+import plotly
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
+import json
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+from get_papers import MakeJson
+from networkgraph import createGraph
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = Flask(__name__, static_url_path='/static')
 
-app.layout = html.Div(children=[
-    html.H1(children='Hello Dash'),
+papers = {}
 
-    html.Div(children='''
-        Dash: A web application framework for Python.
-    '''),
+@app.route('/')
+def index():
+    return render_template('/index.html')
 
-    dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
-                {'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'bar', 'name': u'Montréal'},
-            ],
-            'layout': {
-                'title': 'Dash Data Visualization'
-            }
-        }
-    )
-])
+@app.route('/graph', methods = ['POST', 'GET'])
+def display_graph():
+    if request.method == 'POST':
+        id = request.form['id']
+        MakeJson(id)
+        createGraph()
+
+        return render_template('network.html')
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True) 
